@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý đơn hàng</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pnotify/3.2.1/pnotify.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pnotify/3.2.1/pnotify.buttons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pnotify/3.2.1/pnotify.brighttheme.css">
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.3/css/dataTables.bootstrap4.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+</head>
+<style>
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 9999;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .loading-spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #3498db;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+</style>
+
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <nav class="col-md-2 d-none d-md-block bg-light sidebar">
+                <div class="sidebar-sticky">
+                    <h2 class="text-center mt-4">RƯỢC MỰC DUY NAM</h2>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="index.html">Tạo đơn hàng</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="listOrder.html" onclick="loadPage('listOrder.html')">Danh sách bán
+                                hàng</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">Tình hình bán hàng</a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+            <main role="main" id="content" class="col-md-10">
+                <h1 class="my-4 text-center">Danh sách đơn hàng</h1>
+                <table class="table table-bordered" width="100%" id="orderTable">
+                    <thead>
+                        <tr>
+                            <th>Mã Đơn Hàng</th>
+                            <th>Ngày tạo đơn</th>
+                            <th>Tên đơn hàng</th>
+                            <th>Tổng tiền</th>
+                            <th>Chức năng</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                    </tbody>
+                </table>
+
+            </main>
+        </div>
+        <div id="loading-overlay" class="loading-overlay" style="display: none;">
+            <div class="loading-spinner"></div>
+        </div>
+        <div class="modal fade bd-example-modal-lg" id="productModal" tabindex="-1" aria-labelledby="productModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="productModalLabel">Danh sách sản phẩm</h5>
+                    </div>
+                    <div class="modal-body" id="div_list_product">
+                        <table class="table table-striped mt-4" id="food-table">
+                            <thead>
+                                <tr>
+                                    <th>Tên món</th>
+                                    <th>Số lượng</th>
+                                    <th>Giá</th>
+                                    <th>Tổng tiền</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Rows will be added here by jQuery -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                            onclick="hideModal()">Đóng</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="scripts.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pnotify/3.2.1/pnotify.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pnotify/3.2.1/pnotify.buttons.js"></script>
+    <script src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.3/js/dataTables.bootstrap4.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+
+</body>
+
+</html>
+<script>
+    function showNotifySuccess(title, content, delays = 3000) {
+        var notify = new PNotify({
+            title: title,
+            text: content,
+            type: 'success',
+            styling: 'bootstrap3',
+            hide: false
+        });
+        setTimeout(function () {
+            notify.remove()
+        }, delays);
+    }
+
+    function showNotifyError(title, content, delays = 3000) {
+        var notify = new PNotify({
+            title: title,
+            text: content,
+            type: 'error',
+            styling: 'bootstrap3',
+            hide: false
+        });
+        setTimeout(function () {
+            notify.remove()
+        }, delays);
+    }
+    function escapeHtml(unsafe) {
+        return unsafe.replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+    function showModalSanPham(product) {
+        var data = JSON.parse(product);
+        var $tableBody = $('#food-table tbody');
+        $tableBody.html("")
+        $.each(data, function (index, item) {
+            var $row = $('<tr></tr>');
+            $row.append($('<td></td>').text(item.namefood));
+            $row.append($('<td></td>').text(item.count));
+            $row.append($('<td></td>').text(commafy(item.price)));
+            $row.append($('<td></td>').text(commafy(item.totalprice)));
+            $tableBody.append($row);
+        });
+        $("#productModal").modal('show');
+
+    }
+    function convertOrders(orders) {
+        return orders.map(function (order) {
+            var jsonString = JSON.stringify(order.tbl_OrderDetails);
+            var escapedString = escapeHtml(jsonString);
+            return {
+                id: order.id,
+                date: moment(order.created_at.toString()).format('DD-MM-yyyy HH:mm'),
+                name: order.name,
+                price: commafy(order.price),
+                chucnang: `<a class="btn btn-primary" onclick="showModalSanPham('${escapedString}')">Xem sản phẩm</a>`
+            };
+        });
+    }
+    var data = [];
+    $(document).ready(function () {
+        const table = $('#orderTable').DataTable({
+            responsive: true,
+            searching: true,
+            "language": {
+                "url": "/font-awesome/Vietnamese.json"
+            },
+            "pageLength": 5,
+            paging: true,
+            "order": [[0, "desc"]],
+            columns: [
+                { data: 'id', title: 'Mã đơn hàng' },
+                { data: 'date', title: 'Ngày tạo đơn' },
+                { data: 'name', title: 'Tên đơn hàng' },
+                { data: 'price', title: 'Tổng tiền' },
+                { data: 'chucnang', title: 'Chức năng' }
+            ],
+            rowCallback: function (row, data) {
+                $(row).on('click', function () {
+                    console.log('Row clicked:', data);
+                });
+                $(row).on('contextmenu', function (event) {
+                    event.preventDefault();
+                });
+            },
+
+
+        });
+        function loadData() {
+            showLoading();
+            $.ajax({
+                url: "https://frank-lizard-65.hasura.app/api/rest/getorder", // Thay thế bằng URL endpoint thực tế của bạn
+                headers: {
+                    "content-type": "application/json",
+                    "x-hasura-admin-secret": "lWRIZTbUsW3JUMWxvMom1RKou9YL6F64n4KPPbn2mlowyAfpnY2MMHYRKljKwhQT"
+                },
+                type: "GET",
+                success: function (response) {
+                    var data = convertOrders(response.tbl_Order)
+                    console.log("dtaaa", response.tbl_Order)
+                    // Xóa dữ liệu hiện tại trong DataTable
+                    table.clear();
+                    // Thêm dữ liệu mới vào DataTable
+                    table.rows.add(data);
+                    // Vẽ lại DataTable
+                    table.draw();
+                    hideLoading();
+                },
+                error: function (xhr, status, error) {
+                    console.error('Error fetching data:', error);
+                }
+            });
+        }
+
+        // Gọi hàm loadData để tải dữ liệu khi trang được tải
+        loadData();
+    });
+    function findObjectById(array, id) {
+        return array.find(function (obj) {
+            return obj.id == id;
+        });
+    }
+    function getTableData() {
+        const table = document.getElementById('order-items');
+        const rows = table.getElementsByTagName('tr');
+        const dataDetail = [];
+        for (let i = 1; i <= rows.length; i++) {
+            const row = $(rows[i - 1]); // Sử dụng i - 1 vì chỉ số mảng bắt đầu từ 0
+            const itemName = row.find(`select[name="item-name-${i}"]`).val();
+            const quantity = row.find(`input[name="quantity-${i}"]`).val();
+            const price = row.find(`input[name="price-${i}"]`).val();
+            const priceAll = row.find(`input[name="priceall-${i}"]`).val();
+            dataDetail.push({
+                foodId: itemName,
+                count: Number(quantity.replace(/[^0-9.-]+/g, "")),
+                price: Number(price.replace(/[^0-9.-]+/g, "")),
+                totalprice: Number(priceAll.replace(/[^0-9.-]+/g, ""))
+            });
+        }
+        return dataDetail;
+    }
+    function showLoading() {
+        document.getElementById('loading-overlay').style.display = 'block';
+    }
+
+    function hideLoading() {
+        document.getElementById('loading-overlay').style.display = 'none';
+    }
+    function hideModal() {
+        $("#productModal").modal('hide');
+    }
+    function commafy(num) {
+        var str = num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        return str
+    }
+    $(".fee").each(function () {
+        $(this).val(commafy($(this).val()));
+    });
+    function CheckNumeric() {
+        return event.keyCode >= 48 && event.keyCode <= 57;
+    }
+    function UpdateFormattedValue(inputElement) {
+        var rawValue = inputElement.value;
+        if (rawValue != "") {
+            rawValue = rawValue.replace(/\D/g, '');
+        }
+        inputElement.value = commafy(rawValue);
+    }
+    function Calc(stt) {
+        var count = $(`#quantity-${stt}`).val();
+        var money = $(`#price-${stt}`).val()
+        var total = Number(count.replace(/[^0-9.-]+/g, "")) * Number(money.replace(/[^0-9.-]+/g, ""))
+        $(`#priceall-${stt}`).val(commafy(total))
+        var data = getTableData();
+        var totalPrice = 0;
+        data.map(index => {
+            totalPrice += index.totalprice
+        })
+        $("#totalPrice").val(commafy(totalPrice));
+    }
+    function removeFood(stt) {
+        $(`#food-${stt}`).remove();
+
+        var data = getTableData();
+        console.log("da", data)
+        var totalPrice = 0;
+        data.map(index => {
+            totalPrice += index.totalprice
+        })
+        $("#totalPrice").val(commafy(totalPrice));
+    }
+</script>
