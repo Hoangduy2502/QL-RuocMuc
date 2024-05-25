@@ -70,15 +70,18 @@
                     </ul>
                 </div>
             </nav>
+
             <main role="main" id="content" class="col-md-10">
                 <h1 class="my-4 text-center">Danh sách sản phẩm</h1>
-                <table class="table table-bordered" width="100%" id="orderTable">
+                <a class="btn btn-success" style="float: right;" onclick="showModalAddProduct()">Tạo sản phẩm</a>
+                <table class="table table-bordered" width="100%" id="foodTable">
                     <thead>
                         <tr>
                             <th>Mã sản phẩm</th>
                             <th>Tên sản phẩm</th>
                             <th>Ảnh</th>
-                            <th>Tổng tiền</th>
+                            <th>Giá tiền mặc định</th>
+                            <th>Danh mục</th>
                             <th>Chức năng</th>
                         </tr>
                     </thead>
@@ -91,7 +94,60 @@
         <div id="loading-overlay" class="loading-overlay" style="display: none;">
             <div class="loading-spinner"></div>
         </div>
-     
+        <div class="modal fade bd-example-modal-lg" id="addproduct" tabindex="-1" aria-labelledby="productModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="productModalLabel">Thêm sản phẩm</h5>
+                    </div>
+                    <div class="modal-body" id="div_add_product">
+                        <form class="row">
+                            <input id="FoodId" hidden/>
+                            <div class="form-group col-md-6 col-xs-12">
+                                <label>Tên sản phẩm <span style="color:red">*</span></label>
+                                <input type="text" id="nameFood" name="nameFood" class="form-control"
+                                    value="" />
+                            </div>
+                            <div class="form-group col-md-6 col-xs-12">
+                                <label>Ảnh <span style="color:red">*</span></label>
+                                <input type="text" id="imgFood" name="imgFood"
+                                    class="form-control" value=""/>
+                            </div>
+                            <div class="form-group col-md-6 col-xs-12">
+                                <label>Giá tiền mặc định</label>
+                                <input type="text" id="price" name="price" class="form-control fee" value="0" min="0" />
+                            </div>
+                        	<div class="form-group col-md-6 col-xs-12">
+                                <label>Chọn danh mục<span style="color:red">*</span></label>
+                                <select id="category" name="category" class="form-control select22" style="width: 100%">
+                                    <option value="-1">Chọn danh mục</option>
+                                    <option value="1">Mực</option>
+                                    <option value="2">Cá</option>
+                                    <option value="3">Đồ ăn vặt</option>
+                                    <option value="4">Nước giải khát</option>
+                                </select>
+                            </div>
+                            <div class="form-group col-md-6 col-xs-12">
+                                <label>Đơn vị <span style="color:red">*</span></label>
+                                <input type="text" id="unit" name="unit" class="form-control"
+                                    value="" />
+                            </div>
+                            <div class="form-group col-md-6 col-xs-12">
+                                <label>Mô tả</label>
+                                <textarea rows="3" id="des" name="des" class="form-control"></textarea>
+                            </div>
+                            <div class="clearfix"></div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <a type="button" class="btn btn-success" onclick="InsertFood()">Lưu sản phẩm</button></a>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                            onclick="hideModalAddProduct()">Đóng</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
@@ -108,3 +164,231 @@
 </body>
 
 </html>
+<script>
+
+    $(document).ready(function () {
+        $(".select22").select2();
+        const table = $('#foodTable').DataTable({
+            responsive: true,
+            searching: true,
+            "language": {
+                "url": "/font-awesome/Vietnamese.json"
+            },
+            "pageLength": 5,
+            paging: true,
+            "order": [[0, "desc"]],
+            columns: [
+                { data: 'id', title: 'Mã sản phẩm' },
+                { data: 'name', title: 'Tên sản phẩm' },
+                { data: 'img', title: 'Ảnh' },
+                { data: 'price', title: 'Giá tiền mặc định' },
+                { data: 'category', title: 'Danh mục' },
+                { data: 'chucnang', title: 'Chức năng' },
+            ],
+            rowCallback: function (row, data) {
+                $(row).on('click', function () {
+                    console.log('Row clicked:', data);
+                });
+                $(row).on('contextmenu', function (event) {
+                    event.preventDefault();
+                });
+            },
+        });
+        loadData(table);
+    });
+    function convertFood(food) {
+        return food.map(function (food) {
+            var jsonString = JSON.stringify(food);
+            var escapedString = escapeHtml(jsonString);
+            return {
+                id: food.id,
+                name: food.name,
+                img: `<img style="width:60px" src="${food.img}"/>`,
+                price: commafy(food.price),
+                category:food.category==1?"Mực":food.category==2?"Cá":food.category==3?"Đồ ăn vặt":"Nước giải khát",
+                chucnang: `<a class="btn btn-primary" onclick="showModalEditFood('${escapedString}')" >Chỉnh sửa</a>`
+            };
+        });
+    }
+    function loadData(table) {
+        $.ajax({
+            type: "GET",
+            url: "https://frank-lizard-65.hasura.app/api/rest/getfood",
+            headers: {
+                "content-type": "application/json",
+                "x-hasura-admin-secret": "lWRIZTbUsW3JUMWxvMom1RKou9YL6F64n4KPPbn2mlowyAfpnY2MMHYRKljKwhQT"
+            },
+            beforeSend: function () {
+                showLoading();
+            },
+            success: function (response) {
+
+                var data = convertFood(response.tbl_Food)
+                console.log("dtaaa", response.tbl_Food)
+                // Xóa dữ liệu hiện tại trong DataTable
+                table.clear();
+                // Thêm dữ liệu mới vào DataTable
+                table.rows.add(data);
+                // Vẽ lại DataTable
+                table.draw();
+                hideLoading();
+            },
+            error: function () {
+                showNotifyError("Có lỗi xảy ra", "Mời thử lại !", 3000);
+            },
+            complete: function () {
+                $('#loading-all').hide();
+            }
+        });
+    }
+
+    function showModalAddProduct() {
+        $("#addproduct").modal("show")
+    }
+    function showModalEditFood(food){
+        var dataFood = JSON.parse(food);
+        $("#FoodId").val(dataFood.id);
+        $("#nameFood").val(dataFood.name);
+       $("#imgFood").val(dataFood.img);
+        $("#price").val(dataFood.price);
+        $("#category").val(dataFood.category).trigger("change");
+        $("#des").val(dataFood.des);
+        $("#unit").val(dataFood.unit);
+        $("#addproduct").modal("show");
+
+    }
+    function hideModalAddProduct() {
+        $("#addproduct").modal("hide")
+    }
+    function InsertFood() {
+        var foodId = $("#FoodId").val();
+        var foodName = $("#nameFood").val();
+        var img = $("#imgFood").val();
+        var price = $("#price").val();
+        var category = $("#category").val();
+        var des = $("#des").val();
+        var unit = $("#unit").val();
+        
+        if (foodId != "") {
+            var test = {
+                "id": Number(foodId),
+                "data":{
+                    "name": foodName,
+                    "price": Number(price.replace(/[^0-9.-]+/g, "")),
+                    "img": img,
+                    "category":Number(category),
+                    "des":des,
+                    "unit":unit
+                }
+            }
+            $.ajax({
+                type: "POST",
+                url: "https://frank-lizard-65.hasura.app/api/rest/updatefood",
+                headers: {
+                    "content-type": "application/json",
+                    "x-hasura-admin-secret": "lWRIZTbUsW3JUMWxvMom1RKou9YL6F64n4KPPbn2mlowyAfpnY2MMHYRKljKwhQT"
+                },
+                data: JSON.stringify(test),
+                beforeSend: function () {
+                    showLoading();
+                },
+                success: function (response) {
+                    console.log(response)
+                    showNotifySuccess("Chỉnh sửa sản phẩm thành công", "Thành công", 3000)
+                    hideLoading();
+                    window.location.reload();
+                },
+                error: function () {
+                    showNotifyError("Có lỗi xảy ra", "Mời thử lại !", 3000);
+                },
+                complete: function () {
+                    $('#loading-all').hide();
+
+                }
+            });
+        } else {
+            var test = {
+                "data": {
+                    "name": foodName,
+                    "price": Number(price.replace(/[^0-9.-]+/g, "")),
+                    "img": img,
+                    "category":Number(category),
+                    "des":des,
+                    "unit":unit
+                }
+            }
+            $.ajax({
+                type: "POST",
+                url: "https://frank-lizard-65.hasura.app/api/rest/insertfood",
+                headers: {
+                    "content-type": "application/json",
+                    "x-hasura-admin-secret": "lWRIZTbUsW3JUMWxvMom1RKou9YL6F64n4KPPbn2mlowyAfpnY2MMHYRKljKwhQT"
+                },
+                data: JSON.stringify(test),
+                beforeSend: function () {
+                    showLoading();
+                },
+                success: function (response) {
+                    console.log(response)
+                    showNotifySuccess("Tạo sản phẩm thành công", "Thành công", 3000)
+                    hideLoading();
+                    window.location.reload();
+                    // loadData();
+                },
+                error: function () {
+                    showNotifyError("Có lỗi xảy ra", "Mời thử lại !", 3000);
+                },
+                complete: function () {
+                    $('#loading-all').hide();
+
+                }
+            });
+        }
+    }
+
+    // let idxImg = 1;
+    // const dt = new DataTransfer();
+    // function loadImage(event) {
+    //     var lstFile = event.target.files;
+    //     $('#ulImgtemplate').html("");
+    //     for (var i = 0; i < lstFile.length; i++) {
+    //         idxImg++;
+    //         let li = document.createElement("li");
+    //         li.id = "li" + idxImg;
+    //         let img = document.createElement("img");
+    //         img.src = URL.createObjectURL(lstFile[i]);
+    //         img.width = 100;
+    //         img.height = 80;
+    //         var reader = new FileReader();
+    //         reader.readAsDataURL(lstFile[i]);
+    //         img.onload = function () {
+    //             URL.revokeObjectURL(img.src) // free memory
+               
+    //         }
+
+    //         let removeButton = document.createElement("a")
+    //         removeButton.classList = "btn btn-xs btn-danger bold btn-block";
+    //         removeButton.textContent = "Hủy bỏ";
+    //         removeButton.title = lstFile[i].name;
+    //         removeButton.addEventListener("click", function (e) {
+    //             e.preventDefault();
+    //             e.stopPropagation();
+    //             let name = removeButton.title;
+    //             for (let j = 0; j < dt.items.length; j++) {
+    //                 if (name === dt.items[j].getAsFile().name) {
+    //                     dt.items.remove(j);
+    //                     continue;
+    //                 }
+    //             }
+
+    //             document.getElementById("ulImgtemplate").removeChild(li);
+    //             document.getElementById('fileStart').files = dt.files;
+    //         });
+
+    //         li.appendChild(img);
+    //         li.appendChild(removeButton);
+    //         document.getElementById("ulImgtemplate").appendChild(li);
+    //         dt.items.add(lstFile[i]);
+    //     }
+    // };
+</script>

@@ -141,37 +141,6 @@
 </html>
 <script>
     var data = [];
-    function showNotifySuccess(title, content, delays = 3000) {
-        var notify = new PNotify({
-            title: title,
-            text: content,
-            type: 'success',
-            styling: 'bootstrap3',
-            hide: false
-        });
-        setTimeout(function () {
-            notify.remove()
-        }, delays);
-    }
-    function escapeHtml(unsafe) {
-        return unsafe.replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
-    }
-    function showNotifyError(title, content, delays = 3000) {
-        var notify = new PNotify({
-            title: title,
-            text: content,
-            type: 'error',
-            styling: 'bootstrap3',
-            hide: false
-        });
-        setTimeout(function () {
-            notify.remove()
-        }, delays);
-    }
     function convertOrders(orders) {
         return orders.map(function (order) {
             var jsonString = JSON.stringify(order);
@@ -389,8 +358,6 @@
                 }
             });
         }
-
-
     }
 
     function loadPage(url) {
@@ -429,14 +396,6 @@
         }
         return dataDetail;
     }
-    function showLoading() {
-        document.getElementById('loading-overlay').style.display = 'block';
-    }
-
-    function hideLoading() {
-        document.getElementById('loading-overlay').style.display = 'none';
-    }
-
     function addFood() {
         const orderItems = document.getElementById('order-items');
         const newRow = document.createElement('tr');
@@ -472,23 +431,7 @@
         });
 
     }
-    function commafy(num) {
-        var str = num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-        return str
-    }
-    $(".fee").each(function () {
-        $(this).val(commafy($(this).val()));
-    });
-    function CheckNumeric() {
-        return event.keyCode >= 48 && event.keyCode <= 57;
-    }
-    function UpdateFormattedValue(inputElement) {
-        var rawValue = inputElement.value;
-        if (rawValue != "") {
-            rawValue = rawValue.replace(/\D/g, '');
-        }
-        inputElement.value = commafy(rawValue);
-    }
+   
     function Calc(stt) {
         var count = $(`#quantity-${stt}`).val();
         var money = $(`#price-${stt}`).val()
