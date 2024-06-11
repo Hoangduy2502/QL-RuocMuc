@@ -9,6 +9,25 @@ $(".fee").each(function () {
 function CheckNumeric() {
     return event.keyCode >= 48 && event.keyCode <= 57;
 }
+function calculateCountByTypeFood(orders) {
+    const typeFoodCounts = {};
+
+    orders.forEach(order => {
+        order.tbl_OrderDetails.forEach(detail => {
+            const typefood = detail.typefood || 'null';
+            if (!typeFoodCounts[typefood]) {
+                typeFoodCounts[typefood] = 0;
+            }
+            typeFoodCounts[typefood] += detail.count;
+        });
+    });
+
+    return typeFoodCounts;
+}
+function getCountByTypeFood(typeFoodCounts, typefood) {
+    const key = typefood !== null ? typefood : 'null';
+    return typeFoodCounts[key] || 0;
+}
 function UpdateFormattedValue(inputElement) {
     var rawValue = inputElement.value;
     if (rawValue != "") {

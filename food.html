@@ -129,6 +129,20 @@
                                 </select>
                             </div>
                             <div class="form-group col-md-6 col-xs-12">
+                                <label>Loại món ăn<span style="color:red">*</span></label>
+                                <select id="typefood" name="typefood" class="form-control select22" style="width: 100%">
+                                    <option value="-1">Chọn loại món ăn</option>
+                                    <option value="1">Mực nhỡ</option>
+                                    <option value="2">Mực to</option>
+                                    <option value="3">Cá bóng</option>
+                                    <option value="4">Cá chai</option>
+                                    <option value="5">Cá chỉ vàng</option>
+                                    <option value="6">Đồ viên chiên</option>
+                                    <option value="7">Nước</option>
+                                    <option value="8">Nem</option>
+                                </select>
+                            </div>
+                            <div class="form-group col-md-6 col-xs-12">
                                 <label>Đơn vị <span style="color:red">*</span></label>
                                 <input type="text" id="unit" name="unit" class="form-control"
                                     value="" />
@@ -206,6 +220,7 @@
                 img: `<img style="width:60px" src="${food.img}"/>`,
                 price: commafy(food.price),
                 category:food.category==1?"Mực":food.category==2?"Cá":food.category==3?"Đồ ăn vặt":"Nước giải khát",
+                typefood:food.typefood,
                 chucnang: `<a class="btn btn-primary" onclick="showModalEditFood('${escapedString}')" >Chỉnh sửa</a>`
             };
         });
@@ -254,6 +269,7 @@
         $("#category").val(dataFood.category).trigger("change");
         $("#des").val(dataFood.des);
         $("#unit").val(dataFood.unit);
+        $("#typefood").val(dataFood.typefood).trigger("change");;
         $("#addproduct").modal("show");
 
     }
@@ -268,7 +284,7 @@
         var category = $("#category").val();
         var des = $("#des").val();
         var unit = $("#unit").val();
-        
+        var typefood = $("#typefood").val();
         if (foodId != "") {
             var test = {
                 "id": Number(foodId),
@@ -278,7 +294,8 @@
                     "img": img,
                     "category":Number(category),
                     "des":des,
-                    "unit":unit
+                    "unit":unit,
+                    "typefood":typefood
                 }
             }
             $.ajax({

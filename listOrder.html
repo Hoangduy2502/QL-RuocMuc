@@ -72,6 +72,12 @@
             </nav>
             <main role="main" id="content" class="col-md-10">
                 <h1 class="my-4 text-center">Danh sách đơn hàng</h1>
+                <div style="color: red;"><h5>Tổng tiền thu được : <label id="totalMoney"></label></h5></div>
+                <h5>Số lượng mực to bán: <label id="totalMucto"></label></h5>
+                <h5>Số lượng mực nhỡ bán: <label id="totalMucnho"></label></h5>
+                <h5>Số lượng viên chiên: <label id="totalVienchien"></label></h5>
+                <h5>Số lượng nem: <label id="totalNem"></label></h5>
+                <h5>Số lượng các món khác: <label id="totalother"></label></h5>
                 <table class="table table-bordered" width="100%" id="orderTable">
                     <thead>
                         <tr>
@@ -239,6 +245,16 @@
                 success: function (response) {
                     var data = convertOrders(response.tbl_Order)
                     console.log("dtaaa", response.tbl_Order)
+                    const totalPrice = response.tbl_Order
+                    .filter(order => order.isdelete)
+                    .reduce((sum, order) => sum + order.price, 0);
+                    $("#totalMoney").text(commafy(totalPrice))
+                    var calc = calculateCountByTypeFood(response.tbl_Order)
+                    $("#totalMucto").text(getCountByTypeFood(calc,2))
+                    $("#totalMucnho").text(getCountByTypeFood(calc,1))
+                    $("#totalVienchien").text(getCountByTypeFood(calc,6))
+                    $("#totalNem").text(getCountByTypeFood(calc,8))
+                    $("#totalother").text(getCountByTypeFood(calc,null))
                     // Xóa dữ liệu hiện tại trong DataTable
                     table.clear();
                     // Thêm dữ liệu mới vào DataTable
