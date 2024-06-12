@@ -76,6 +76,9 @@
                 <h5>Số lượng mực to bán: <label id="totalMucto"></label></h5>
                 <h5>Số lượng mực nhỡ bán: <label id="totalMucnho"></label></h5>
                 <h5>Số lượng viên chiên: <label id="totalVienchien"></label></h5>
+                <h5>Số lượng cá chai: <label id="totalchai"></label></h5>
+                <h5>Số lượng cá bóng: <label id="totalbong"></label></h5>
+                <h5>Số lượng cá chỉ vàng: <label id="totalvang"></label></h5>
                 <h5>Số lượng nem: <label id="totalNem"></label></h5>
                 <h5>Số lượng các món khác: <label id="totalother"></label></h5>
                 <table class="table table-bordered" width="100%" id="orderTable">
@@ -255,6 +258,9 @@
                     $("#totalVienchien").text(getCountByTypeFood(calc,6))
                     $("#totalNem").text(getCountByTypeFood(calc,8))
                     $("#totalother").text(getCountByTypeFood(calc,null))
+                    $("#totalchai").text(getCountByTypeFood(calc,4))
+                    $("#totalbong").text(getCountByTypeFood(calc,3))
+                    $("#totalvang").text(getCountByTypeFood(calc,5))
                     // Xóa dữ liệu hiện tại trong DataTable
                     table.clear();
                     // Thêm dữ liệu mới vào DataTable
