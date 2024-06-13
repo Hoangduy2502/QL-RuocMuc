@@ -3,6 +3,7 @@ function commafy(num) {
     var str = num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
     return str
 }
+
 $(".fee").each(function () {
     $(this).val(commafy($(this).val()));
 });
@@ -19,6 +20,33 @@ function calculateCountByTypeFood(orders) {
                 typeFoodCounts[typefood] = 0;
             }
             typeFoodCounts[typefood] += detail.count;
+        });
+    });
+
+    return typeFoodCounts;
+}
+function deleteCookie(name) {
+    document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+}
+
+function logout() {
+    // Delete isLoggedIn and userName cookies
+    deleteCookie('isLoggedIn');
+    deleteCookie('userName');
+
+    // Redirect to login page or any other desired page
+    window.location.href = 'login.html'; // Redirect to login page after logout
+}
+function calculateMoneyByTypeFood(orders) {
+    const typeFoodCounts = {};
+
+    orders.forEach(order => {
+        order.tbl_OrderDetails.forEach(detail => {
+            const typefood = detail.typefood || 'null';
+            if (!typeFoodCounts[typefood]) {
+                typeFoodCounts[typefood] = 0;
+            }
+            typeFoodCounts[typefood] += detail.price;
         });
     });
 

@@ -51,6 +51,7 @@
     <div class="container-fluid">
         <div class="row">
             <nav class="col-md-2 d-none d-md-block bg-light sidebar">
+                <button onclick="logout()">Logout</button>
                 <div class="sidebar-sticky">
                     <h2 class="text-center mt-4">RƯỢC MỰC DUY NAM</h2>
                     <ul class="nav flex-column">
@@ -79,6 +80,10 @@
                         <label for="orderName">Tên đơn hàng</label>
                         <input type="text" class="form-control" id="orderName" name="orderName">
                     </div>
+                    <div class="form-group">
+                        <label for="orderDate">Ngày đặt hàng</label>
+                        <input type="date" class="form-control" id="orderDate" name="orderDate">
+                    </div>
                     <table class="table table-striped mt-4">
                         <thead>
                             <tr>
@@ -105,7 +110,9 @@
                 <div class="clearfix"></div>
 
                 <h1 class="my-4 text-center">Danh sách đơn hàng</h1>
-                <div style="color: red;"><h5>Tổng tiền thu được theo ngày : <label id="totalMoney"></label></h5></div>
+                <div style="color: red;">
+                    <h5>Tổng tiền thu được theo ngày : <label id="totalMoney"></label></h5>
+                </div>
                 <h5>Số lượng mực to bán: <label id="totalMucto"></label></h5>
                 <h5>Số lượng mực nhỡ bán: <label id="totalMucnho"></label></h5>
                 <h5>Số lượng viên chiên: <label id="totalVienchien"></label></h5>
@@ -151,7 +158,23 @@
 <script>
     var data = [];
     var food = [];
-
+    function getCookie(name) {
+        const cookieName = `${name}=`;
+        const cookieArray = document.cookie.split(';');
+        for (let i = 0; i < cookieArray.length; i++) {
+            let cookie = cookieArray[i].trim();
+            if (cookie.indexOf(cookieName) === 0) {
+                return cookie.substring(cookieName.length, cookie.length);
+            }
+        }
+        return null;
+    }
+    document.addEventListener('DOMContentLoaded', function () {
+        const isLoggedIn = getCookie('isLoggedIn') === 'true';
+        if (!isLoggedIn) {
+            window.location.href = 'login.html'; // Redirect to login page if not logged in
+        }
+    });
     function convertOrders(orders) {
         return orders.map(function (order) {
             var jsonString = JSON.stringify(order);
@@ -204,6 +227,16 @@
     }
 
     $(document).ready(function () {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = ('0' + (today.getMonth() + 1)).slice(-2);
+        const day = ('0' + today.getDate()).slice(-2);
+
+        // Format the date as YYYY-MM-DD
+        const currentDate = `${year}-${month}-${day}`;
+
+        // Set the value of the date input field
+        document.getElementById('orderDate').value = currentDate;
         var select = document.getElementById('item-name');;
         loadData();
         const table = $('#orderTable').DataTable({
@@ -231,14 +264,14 @@
                 });
             },
         });
-      
+
         function loadDataOrder() {
             // showLoading();
             let data = {
                 from: moment(Date.now()).format('YYYY/MM/DD'), // Định dạng thời gian hiện tại
                 to: moment(Date.now() + 24 * 60 * 60 * 1000).format('YYYY/MM/DD') // Cộng thêm 1 ngày và định dạng
             };
-            console.log("truyền lên",data)
+            console.log("truyền lên", data)
             $.ajax({
                 url: "https://frank-lizard-65.hasura.app/api/rest/getorderbyday", // Thay thế bằng URL endpoint thực tế của bạn
                 headers: {
@@ -251,18 +284,19 @@
                     var data = convertOrders(response.tbl_Order)
                     console.log("dtaaa", response.tbl_Order)
                     const totalPrice = response.tbl_Order
-                    .filter(order => order.isdelete)
-                    .reduce((sum, order) => sum + order.price, 0);
+                        .filter(order => order.isdelete)
+                        .reduce((sum, order) => sum + order.price, 0);
                     $("#totalMoney").text(commafy(totalPrice))
                     var calc = calculateCountByTypeFood(response.tbl_Order)
-                    $("#totalMucto").text(getCountByTypeFood(calc,2))
-                    $("#totalMucnho").text(getCountByTypeFood(calc,1))
-                    $("#totalVienchien").text(getCountByTypeFood(calc,6))
-                    $("#totalNem").text(getCountByTypeFood(calc,8))
-                    $("#totalother").text(getCountByTypeFood(calc,null))
-                    $("#totalchai").text(getCountByTypeFood(calc,4))
-                    $("#totalbong").text(getCountByTypeFood(calc,3))
-                    $("#totalvang").text(getCountByTypeFood(calc,5))
+                    var calcMoney = calculateMoneyByTypeFood(response.tbl_Order)
+                    $("#totalMucto").text(getCountByTypeFood(calc, 2) + "- Tiền: " + commafy(getCountByTypeFood(calcMoney, 2)))
+                    $("#totalMucnho").text(getCountByTypeFood(calc, 1) + "- Tiền: " + commafy(getCountByTypeFood(calcMoney, 1)))
+                    $("#totalVienchien").text(getCountByTypeFood(calc, 6) + "- Tiền: " + commafy(getCountByTypeFood(calcMoney, 6)))
+                    $("#totalNem").text(getCountByTypeFood(calc, 8) + "- Tiền: " + commafy(getCountByTypeFood(calcMoney, 8)))
+                    $("#totalother").text(getCountByTypeFood(calc, null) + "- Tiền: " + commafy(getCountByTypeFood(calcMoney, null)))
+                    $("#totalchai").text(getCountByTypeFood(calc, 4) + "- Tiền: " + commafy(getCountByTypeFood(calcMoney, 4)))
+                    $("#totalbong").text(getCountByTypeFood(calc, 3) + "- Tiền: " + commafy(getCountByTypeFood(calcMoney, 3)))
+                    $("#totalvang").text(getCountByTypeFood(calc, 5) + "- Tiền: " + commafy(getCountByTypeFood(calcMoney, 5)))
                     // Xóa dữ liệu hiện tại trong DataTable
                     table.clear();
                     // Thêm dữ liệu mới vào DataTable
@@ -313,7 +347,10 @@
         var OrderId = $("#OrderId").val();
         var dataDetail = getTableData();
         var orderName = $("#orderName").val();
+        var orderDate = $("#orderDate").val();
         var totalPrice = $("#totalPrice").val();
+        const userName = getCookie('userName');
+
         if (OrderId != "") {
             var test = {
 
@@ -321,7 +358,6 @@
                 "name": orderName,
                 "price": Number(totalPrice.replace(/[^0-9.-]+/g, "")),
                 "data": addOrderIdToData(dataDetail, OrderId)
-
             }
             $.ajax({
                 type: "POST",
@@ -356,7 +392,9 @@
                     "isdelete": true,
                     "tbl_OrderDetails": {
                         "data": dataDetail
-                    }
+                    },
+                    "created_at": orderDate,
+                    "username": userName
                 }
             }
             $.ajax({
@@ -414,7 +452,7 @@
             const priceAll = row.find(`input[name="priceall-${i}"]`).val();
             const foodName = $(`#item-name-${i} option:selected`).text();
             console.log(itemName)
-            var typefood = food.find(p=>p.id=== Number(itemName)).typefood
+            var typefood = food.find(p => p.id === Number(itemName)).typefood
             console.log(typefood)
             dataDetail.push({
                 foodId: Number(itemName),
@@ -422,7 +460,7 @@
                 price: Number(price.replace(/[^0-9.-]+/g, "")),
                 totalprice: Number(priceAll.replace(/[^0-9.-]+/g, "")),
                 namefood: foodName,
-                typefood:typefood
+                typefood: typefood
             });
         }
         return dataDetail;
@@ -462,7 +500,7 @@
         });
 
     }
-   
+
     function Calc(stt) {
         var count = $(`#quantity-${stt}`).val();
         var money = $(`#price-${stt}`).val()

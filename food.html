@@ -49,8 +49,11 @@
 
 <body>
     <div class="container-fluid">
+        
         <div class="row">
+      
             <nav class="col-md-2 d-none d-md-block bg-light sidebar">
+                <button onclick="logout()">Logout</button>
                 <div class="sidebar-sticky">
                     <h2 class="text-center mt-4">RƯỢC MỰC DUY NAM</h2>
                     <ul class="nav flex-column">
@@ -179,7 +182,23 @@
 
 </html>
 <script>
-
+     function getCookie(name) {
+            const cookieName = `${name}=`;
+            const cookieArray = document.cookie.split(';');
+            for (let i = 0; i < cookieArray.length; i++) {
+                let cookie = cookieArray[i].trim();
+                if (cookie.indexOf(cookieName) === 0) {
+                    return cookie.substring(cookieName.length, cookie.length);
+                }
+            }
+            return null;
+        }
+ document.addEventListener('DOMContentLoaded', function() {
+            const isLoggedIn = getCookie('isLoggedIn') === 'true';
+            if (!isLoggedIn) {
+                window.location.href = 'login.html'; // Redirect to login page if not logged in
+            }
+        });
     $(document).ready(function () {
         $(".select22").select2();
         const table = $('#foodTable').DataTable({

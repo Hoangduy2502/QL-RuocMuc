@@ -49,8 +49,11 @@
 
 <body>
     <div class="container-fluid">
+        
         <div class="row">
+            
             <nav class="col-md-2 d-none d-md-block bg-light sidebar">
+                <button onclick="logout()">Logout</button>
                 <div class="sidebar-sticky">
                     <h2 class="text-center mt-4">RƯỢC MỰC DUY NAM</h2>
                     <ul class="nav flex-column">
@@ -69,6 +72,7 @@
                         </li>
                     </ul>
                 </div>
+         
             </nav>
             <main role="main" id="content" class="col-md-10">
                 <h1 class="my-4 text-center">Danh sách đơn hàng</h1>
@@ -147,6 +151,24 @@
 
 </html>
 <script>
+     function getCookie(name) {
+            const cookieName = `${name}=`;
+            const cookieArray = document.cookie.split(';');
+            for (let i = 0; i < cookieArray.length; i++) {
+                let cookie = cookieArray[i].trim();
+                if (cookie.indexOf(cookieName) === 0) {
+                    return cookie.substring(cookieName.length, cookie.length);
+                }
+            }
+            return null;
+        }
+     document.addEventListener('DOMContentLoaded', function() {
+        console.log("est")
+            const isLoggedIn = getCookie('isLoggedIn') === 'true';
+            if (!isLoggedIn) {
+                window.location.href = 'login.html'; // Redirect to login page if not logged in
+            }
+        });
     function showNotifySuccess(title, content, delays = 3000) {
         var notify = new PNotify({
             title: title,
@@ -253,14 +275,15 @@
                     .reduce((sum, order) => sum + order.price, 0);
                     $("#totalMoney").text(commafy(totalPrice))
                     var calc = calculateCountByTypeFood(response.tbl_Order)
-                    $("#totalMucto").text(getCountByTypeFood(calc,2))
-                    $("#totalMucnho").text(getCountByTypeFood(calc,1))
-                    $("#totalVienchien").text(getCountByTypeFood(calc,6))
-                    $("#totalNem").text(getCountByTypeFood(calc,8))
-                    $("#totalother").text(getCountByTypeFood(calc,null))
-                    $("#totalchai").text(getCountByTypeFood(calc,4))
-                    $("#totalbong").text(getCountByTypeFood(calc,3))
-                    $("#totalvang").text(getCountByTypeFood(calc,5))
+                    var calcMoney = calculateMoneyByTypeFood(response.tbl_Order)
+                    $("#totalMucto").text(getCountByTypeFood(calc,2) + "- Tiền: " +commafy(getCountByTypeFood(calcMoney,2)))
+                    $("#totalMucnho").text(getCountByTypeFood(calc,1) + "- Tiền: " + commafy(getCountByTypeFood(calcMoney,1)))
+                    $("#totalVienchien").text(getCountByTypeFood(calc,6) + "- Tiền: " + commafy(getCountByTypeFood(calcMoney,6)))
+                    $("#totalNem").text(getCountByTypeFood(calc,8) + "- Tiền: " + commafy(getCountByTypeFood(calcMoney,8)))
+                    $("#totalother").text(getCountByTypeFood(calc,null)+ "- Tiền: " + commafy(getCountByTypeFood(calcMoney,null)))
+                    $("#totalchai").text(getCountByTypeFood(calc,4) + "- Tiền: " + commafy(getCountByTypeFood(calcMoney,4)))
+                    $("#totalbong").text(getCountByTypeFood(calc,3)+ "- Tiền: " + commafy(getCountByTypeFood(calcMoney,3)))
+                    $("#totalvang").text(getCountByTypeFood(calc,5)+ "- Tiền: " + commafy(getCountByTypeFood(calcMoney,5)))
                     // Xóa dữ liệu hiện tại trong DataTable
                     table.clear();
                     // Thêm dữ liệu mới vào DataTable
