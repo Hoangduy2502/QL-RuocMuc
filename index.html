@@ -268,8 +268,8 @@
         function loadDataOrder() {
             // showLoading();
             let data = {
-                from: moment(Date.now()).format('YYYY/MM/DD'), // Định dạng thời gian hiện tại
-                to: moment(Date.now() + 24 * 60 * 60 * 1000).format('YYYY/MM/DD') // Cộng thêm 1 ngày và định dạng
+                from: moment(Date.now() - 24 * 60 * 60 * 1000).format('YYYY/MM/DD'), // Định dạng thời gian hiện tại
+                to: moment(Date.now()).format('YYYY/MM/DD') // Cộng thêm 1 ngày và định dạng
             };
             console.log("truyền lên", data)
             $.ajax({
